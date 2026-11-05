@@ -1,26 +1,26 @@
 # ESP-IDF Manager & Launcher
 
-Herramienta de línea de comandos en C para instalar, administrar y ejecutar varias versiones de ESP-IDF desde una misma cuenta de usuario.
+Command-line tool written in C for installing, managing, and running multiple ESP-IDF versions from a single user account.
 
 ## Requisitos
 
 - Linux
-- GCC y Make
+- GCC and Make
 - Git
 - Bash
-- Conexión a Internet para clonar ESP-IDF
+- Internet connection to clone ESP-IDF
 
-La instalación de ESP-IDF también descarga e instala sus propias herramientas y dependencias mediante el script `install.sh` de Espressif.
+ESP-IDF installation also downloads and installs its tools and dependencies using Espressif's `install.sh` script.
 
 ## Compilar
 
-Desde el directorio del proyecto:
+From the project directory:
 
 ```sh
 make
 ```
 
-Esto genera el ejecutable `esp-idf`. Para borrar el ejecutable generado:
+This builds the `esp-idf` executable. To remove the generated executable:
 
 ```sh
 make clean
@@ -32,25 +32,25 @@ make clean
 make install
 ```
 
-El ejecutable se copia a `~/.local/bin/esp-idf`. Asegúrate de que `~/.local/bin` esté incluido en tu variable `PATH`.
+The executable is copied to `~/.local/bin/esp-idf`. Make sure `~/.local/bin` is included in your `PATH`.
 
-Para desinstalar el ejecutable:
+To uninstall the executable:
 
 ```sh
 make uninstall
 ```
 
-Este objetivo solo elimina el comando instalado; no elimina las versiones de ESP-IDF descargadas.
+This target only removes the installed command; it does not remove downloaded ESP-IDF versions.
 
 ## Uso
 
-### Instalar una versión
+### Install a version
 
 ```sh
 esp-idf -i
 ```
 
-El instalador ofrece estas opciones predefinidas:
+The installer offers these predefined options:
 
 - ESP-IDF v4.4
 - ESP-IDF v5.0
@@ -58,60 +58,60 @@ El instalador ofrece estas opciones predefinidas:
 - ESP-IDF v5.2
 - ESP-IDF v5.3
 - ESP-IDF v5.4
-- Rama `master`
-- Una rama o etiqueta personalizada
+- `master` branch
+- A custom branch or tag
 
-Las versiones se clonan bajo `~/esp/`. Por ejemplo, la rama `release/v5.4` queda en `~/esp/esp-idf-release-v5.4`.
+Versions are cloned under `~/esp/`. For example, the `release/v5.4` branch is placed in `~/esp/esp-idf-release-v5.4`.
 
-### Listar versiones instaladas
+### List installed versions
 
 ```sh
 esp-idf -l
-# También: esp-idf --list
+# Also: esp-idf --list
 ```
 
-### Abrir una shell con una versión
+### Open a shell with a version
 
-Usa el nombre mostrado por el listado o derivado de la rama (las barras se reemplazan por guiones):
+Use the name shown in the version list, or the branch-derived name (slashes are replaced with hyphens):
 
 ```sh
 esp-idf -v release-v5.4
 ```
 
-Al salir de la shell con `exit`, se cierra el entorno de ESP-IDF.
+Type `exit` to leave the shell and close the ESP-IDF environment.
 
-### Configurar la versión predeterminada
+### Set the default version
 
 ```sh
 esp-idf -d release-v5.4
 ```
 
-Después, ejecutar `esp-idf` sin argumentos abre la shell con esa versión. La configuración se guarda en `~/.config/esp-idf/default`.
+Afterward, running `esp-idf` without arguments opens a shell with that version. The setting is saved in `~/.config/esp-idf/default`.
 
-### Ejecutar un comando en el entorno
+### Run a command in the environment
 
 ```sh
 esp-idf -x release-v5.4 "idf.py --version"
 ```
 
-### Desinstalar una versión
+### Uninstall a version
 
 ```sh
 esp-idf -u release-v5.4
 ```
 
-**Atención:** esta opción elimina permanentemente el directorio de esa versión dentro de `~/esp/`.
+**Warning:** this permanently deletes that version's directory under `~/esp/`.
 
-### Ayuda
+### Help
 
 ```sh
 esp-idf
 ```
 
-Sin argumentos, el programa abre la versión predeterminada si está configurada; si no, muestra la ayuda.
+With no arguments, the program opens the default version if one is configured; otherwise, it displays the help text.
 
-## Estructura de almacenamiento
+## Storage locations
 
-- Instalaciones: `~/esp/esp-idf-<nombre-de-versión>`
-- Versión predeterminada: `~/.config/esp-idf/default`
-- Ejecutable instalado: `~/.local/bin/esp-idf`
+- Installations: `~/esp/esp-idf-<version-name>`
+- Default version: `~/.config/esp-idf/default`
+- Installed executable: `~/.local/bin/esp-idf`
