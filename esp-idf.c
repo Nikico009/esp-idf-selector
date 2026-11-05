@@ -11,7 +11,7 @@
 
 #define MAX_PATH 1024
 
-// Estructura para definir opciones predefinidas de instalación
+// Defines a predefined ESP-IDF installation option.
 typedef struct {
     const char *display_name;
     const char *branch_or_tag;
@@ -43,42 +43,42 @@ void print_usage(const char *prog_name) {
 }
 
 void get_home_dir(char *buf, size_t size) {
-    struct passwd *pw = getpwuid(getuid());
-    if (!pw) {
+    struct passwd *user_entry = getpwuid(getuid());
+    if (!user_entry) {
         perror("Failed to get user home directory");
         exit(1);
     }
-    snprintf(buf, size, "%s", pw->pw_dir);
+    snprintf(buf, size, "%s", user_entry->pw_dir);
 }
 
 void list_versions(const char *home_dir) {
     char esp_dir[MAX_PATH];
     snprintf(esp_dir, sizeof(esp_dir), "%s/esp", home_dir);
 
-    DIR *d = opendir(esp_dir);
-    if (!d) {
+    DIR *directory_stream = opendir(esp_dir);
+    if (!directory_stream) {
         printf("No ESP-IDF installations found (directory %s does not exist).\n", esp_dir);
         return;
     }
 
     printf("=== Installed ESP-IDF Versions ===\n");
-    struct dirent *dir;
-    int count = 0;
-    while ((dir = readdir(d)) != NULL) {
-        if (strncmp(dir->d_name, "esp-idf-", 8) == 0) {
+    struct dirent *directory_entry;
+    int version_count = 0;
+    while ((directory_entry = readdir(directory_stream)) != NULL) {
+        if (strncmp(directory_entry->d_name, "esp-idf-", 8) == 0) {
             char export_path[MAX_PATH];
-            int written = snprintf(export_path, sizeof(export_path), "%s/%s/export.sh", esp_dir, dir->d_name);
-            if (written > 0 && (size_t)written < sizeof(export_path)) {
+            int path_length = snprintf(export_path, sizeof(export_path), "%s/%s/export.sh", esp_dir, directory_entry->d_name);
+            if (path_length > 0 && (size_t)path_length < sizeof(export_path)) {
                 if (access(export_path, F_OK) == 0) {
-                    printf("  - %s\n", dir->d_name + 8);
-                    count++;
+                    printf("  - %s\n", directory_entry->d_name + 8);
+                    version_count++;
                 }
             }
         }
     }
-    closedir(d);
+    closedir(directory_stream);
 
-    if (count == 0) {
+    if (version_count == 0) {
         printf("  (None found)\n");
     }
 }
@@ -93,9 +93,9 @@ void uninstall_version(const char *home_dir, const char *version) {
     }
 
     printf("[+] Removing directory: %s\n", target_path);
-    char rm_cmd[MAX_PATH + 32];
-    snprintf(rm_cmd, sizeof(rm_cmd), "rm -rf \"%s\"", target_path);
-    if (system(rm_cmd) == 0) {
+    char remove_command[MAX_PATH + 32];
+    snprintf(remove_command, sizeof(remove_command), "rm -rf \"%s\"", target_path);
+    if (system(remove_command) == 0) {
         printf("[✔] Version '%s' successfully uninstalled.\n", version);
     } else {
         fprintf(stderr, "Error: Failed to remove directory.\n");
@@ -106,9 +106,9 @@ void set_default_version(const char *home_dir, const char *version) {
     char config_dir[MAX_PATH];
     snprintf(config_dir, sizeof(config_dir), "%s/.config/esp-idf", home_dir);
 
-    char mkdir_cmd[MAX_PATH + 32];
-    snprintf(mkdir_cmd, sizeof(mkdir_cmd), "mkdir -p \"%s\"", config_dir);
-    system(mkdir_cmd);
+    char create_directory_command[MAX_PATH + 32];
+    snprintf(create_directory_command, sizeof(create_directory_command), "mkdir -p \"%s\"", config_dir);
+    system(create_directory_command);
 
     char config_file[MAX_PATH];
     if (!append_path(config_file, sizeof(config_file), config_dir, "/default")) {
@@ -116,13 +116,13 @@ void set_default_version(const char *home_dir, const char *version) {
         return;
     }
 
-    FILE *f = fopen(config_file, "w");
-    if (!f) {
+    FILE *config_file_handle = fopen(config_file, "w");
+    if (!config_file_handle) {
         perror("Failed to save default version configuration");
         return;
     }
-    fprintf(f, "%s\n", version);
-    fclose(f);
+    fprintf(config_file_handle, "%s\n", version);
+    fclose(config_file_handle);
     printf("[✔] Default ESP-IDF version set to: %s\n", version);
 }
 
@@ -130,15 +130,15 @@ int get_default_version(const char *home_dir, char *version_buf, size_t size) {
     char config_file[MAX_PATH];
     snprintf(config_file, sizeof(config_file), "%s/.config/esp-idf/default", home_dir);
 
-    FILE *f = fopen(config_file, "r");
-    if (!f) return 0;
+    FILE *config_file_handle = fopen(config_file, "r");
+    if (!config_file_handle) return 0;
 
-    if (fgets(version_buf, (int)size, f) != NULL) {
+    if (fgets(version_buf, (int)size, config_file_handle) != NULL) {
         version_buf[strcspn(version_buf, "\r\n")] = 0;
-        fclose(f);
+        fclose(config_file_handle);
         return 1;
     }
-    fclose(f);
+    fclose(config_file_handle);
     return 0;
 }
 
@@ -155,14 +155,14 @@ void load_environment(const char *home_dir, const char *version) {
     printf("[+] Loading ESP-IDF environment (%s)...\n", version);
     printf("[i] Type 'exit' to leave the environment.\n\n");
 
-    char cmd[MAX_PATH * 2];
-    snprintf(cmd, sizeof(cmd), ". %s && exec bash", export_script);
-    execl("/bin/bash", "bash", "-c", cmd, NULL);
+    char shell_command[MAX_PATH * 2];
+    snprintf(shell_command, sizeof(shell_command), ". %s && exec bash", export_script);
+    execl("/bin/bash", "bash", "-c", shell_command, NULL);
     perror("Failed to start shell");
     exit(1);
 }
 
-void exec_command(const char *home_dir, const char *version, const char *user_cmd) {
+void exec_command(const char *home_dir, const char *version, const char *user_command) {
     char export_script[MAX_PATH];
     snprintf(export_script, sizeof(export_script), "%s/esp/esp-idf-%s/export.sh", home_dir, version);
 
@@ -171,23 +171,23 @@ void exec_command(const char *home_dir, const char *version, const char *user_cm
         exit(1);
     }
 
-    char full_cmd[MAX_PATH * 3];
-    snprintf(full_cmd, sizeof(full_cmd), ". %s > /dev/null 2>&1 && %s", export_script, user_cmd);
+    char environment_command[MAX_PATH * 3];
+    snprintf(environment_command, sizeof(environment_command), ". %s > /dev/null 2>&1 && %s", export_script, user_command);
     
-    int ret = system(full_cmd);
-    exit(WEXITSTATUS(ret));
+    int command_status = system(environment_command);
+    exit(WEXITSTATUS(command_status));
 }
 
 void interactive_install(const char *home_dir) {
     char esp_dir[MAX_PATH];
     snprintf(esp_dir, sizeof(esp_dir), "%s/esp", home_dir);
 
-    struct stat st = {0};
-    if (stat(esp_dir, &st) == -1) {
+    struct stat directory_status = {0};
+    if (stat(esp_dir, &directory_status) == -1) {
         mkdir(esp_dir, 0755);
     }
 
-    // Lista relevante de hasta 10 versiones/ramas destacadas
+    // A curated list of notable ESP-IDF versions and branches.
     ESPVersionOption options[] = {
         {"ESP-IDF v4.4 (Stable / Legacy)", "release/v4.4"},
         {"ESP-IDF v5.0 (Stable)", "release/v5.0"},
@@ -197,28 +197,28 @@ void interactive_install(const char *home_dir) {
         {"ESP-IDF v5.4 (Stable)", "release/v5.4"},
         {"ESP-IDF Master / Latest (Development)", "master"}
     };
-    int num_options = sizeof(options) / sizeof(options[0]);
+    int option_count = (int)(sizeof(options) / sizeof(options[0]));
 
     printf("=== ESP-IDF Interactive Installer ===\n");
     printf("Select a version to install:\n");
-    for (int i = 0; i < num_options; i++) {
+    for (int i = 0; i < option_count; i++) {
         printf("  %d) %s\n", i + 1, options[i].display_name);
     }
-    printf("  %d) Enter custom branch/tag manually\n", num_options + 1);
-    printf("Selection [1-%d]: ", num_options + 1);
+    printf("  %d) Enter custom branch/tag manually\n", option_count + 1);
+    printf("Selection [1-%d]: ", option_count + 1);
 
-    int choice = 0;
-    if (scanf("%d", &choice) != 1) {
+    int selected_option = 0;
+    if (scanf("%d", &selected_option) != 1) {
         fprintf(stderr, "Invalid input.\n");
         return;
     }
 
-    char version_input[256];
-    if (choice >= 1 && choice <= num_options) {
-        strcpy(version_input, options[choice - 1].branch_or_tag);
-    } else if (choice == num_options + 1) {
+    char version_reference[256];
+    if (selected_option >= 1 && selected_option <= option_count) {
+        strcpy(version_reference, options[selected_option - 1].branch_or_tag);
+    } else if (selected_option == option_count + 1) {
         printf("Enter branch, tag or version name (e.g., release/v5.5, v5.3.1): ");
-        if (scanf("%255s", version_input) != 1) {
+        if (scanf("%255s", version_reference) != 1) {
             fprintf(stderr, "Invalid input.\n");
             return;
         }
@@ -227,16 +227,16 @@ void interactive_install(const char *home_dir) {
         return;
     }
 
-    char clean_name[256];
-    strcpy(clean_name, version_input);
-    for (int i = 0; clean_name[i] != '\0'; i++) {
-        if (clean_name[i] == '/') clean_name[i] = '-';
+    char directory_version_name[256];
+    strcpy(directory_version_name, version_reference);
+    for (int i = 0; directory_version_name[i] != '\0'; i++) {
+        if (directory_version_name[i] == '/') directory_version_name[i] = '-';
     }
 
     char target_path[MAX_PATH];
     char target_prefix[MAX_PATH];
     if (!append_path(target_prefix, sizeof(target_prefix), esp_dir, "/esp-idf-") ||
-        !append_path(target_path, sizeof(target_path), target_prefix, clean_name)) {
+        !append_path(target_path, sizeof(target_path), target_prefix, directory_version_name)) {
         fprintf(stderr, "Error: Installation path is too long.\n");
         return;
     }
@@ -246,29 +246,29 @@ void interactive_install(const char *home_dir) {
         return;
     }
 
-    char git_cmd[MAX_PATH * 2];
-    if (strcasecmp(version_input, "master") == 0) {
-        snprintf(git_cmd, sizeof(git_cmd), "git clone --recursive https://github.com/espressif/esp-idf.git \"%s\"", target_path);
+    char git_command[MAX_PATH * 2];
+    if (strcasecmp(version_reference, "master") == 0) {
+        snprintf(git_command, sizeof(git_command), "git clone --recursive https://github.com/espressif/esp-idf.git \"%s\"", target_path);
     } else {
-        snprintf(git_cmd, sizeof(git_cmd), "git clone -b %s --recursive https://github.com/espressif/esp-idf.git \"%s\"", version_input, target_path);
+        snprintf(git_command, sizeof(git_command), "git clone -b %s --recursive https://github.com/espressif/esp-idf.git \"%s\"", version_reference, target_path);
     }
 
-    printf("[+] Cloning ESP-IDF (%s)...\n", version_input);
-    if (system(git_cmd) != 0) {
+    printf("[+] Cloning ESP-IDF (%s)...\n", version_reference);
+    if (system(git_command) != 0) {
         fprintf(stderr, "Error: Git clone failed. Check branch or tag name.\n");
         return;
     }
 
     printf("[+] Running install.sh (this may take a few minutes)...\n");
-    char install_cmd[MAX_PATH + 32];
-    snprintf(install_cmd, sizeof(install_cmd), "cd \"%s\" && ./install.sh", target_path);
-    if (system(install_cmd) != 0) {
+    char install_command[MAX_PATH + 32];
+    snprintf(install_command, sizeof(install_command), "cd \"%s\" && ./install.sh", target_path);
+    if (system(install_command) != 0) {
         fprintf(stderr, "Error: install.sh failed.\n");
         return;
     }
 
     printf("\n[✔] Installation completed successfully!\n");
-    printf("[i] Run it using: esp-idf -v %s\n", clean_name);
+    printf("[i] Run it using: esp-idf -v %s\n", directory_version_name);
 }
 
 int main(int argc, char *argv[]) {
@@ -276,9 +276,9 @@ int main(int argc, char *argv[]) {
     get_home_dir(home_dir, sizeof(home_dir));
 
     if (argc < 2) {
-        char default_ver[256];
-        if (get_default_version(home_dir, default_ver, sizeof(default_ver))) {
-            load_environment(home_dir, default_ver);
+        char default_version[256];
+        if (get_default_version(home_dir, default_version, sizeof(default_version))) {
+            load_environment(home_dir, default_version);
         } else {
             print_usage(argv[0]);
             return 1;

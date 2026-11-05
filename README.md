@@ -2,7 +2,7 @@
 
 Command-line tool written in C for installing, managing, and running multiple ESP-IDF versions from a single user account.
 
-## Requisitos
+## Requirements
 
 - Linux
 - GCC and Make
@@ -12,7 +12,7 @@ Command-line tool written in C for installing, managing, and running multiple ES
 
 ESP-IDF installation also downloads and installs its tools and dependencies using Espressif's `install.sh` script.
 
-## Compilar
+## Build
 
 From the project directory:
 
@@ -26,7 +26,7 @@ This builds the `esp-idf` executable. To remove the generated executable:
 make clean
 ```
 
-## Instalar el comando
+## Install the command
 
 ```sh
 make install
@@ -42,7 +42,7 @@ make uninstall
 
 This target only removes the installed command; it does not remove downloaded ESP-IDF versions.
 
-## Uso
+## Usage
 
 ### Install a version
 
